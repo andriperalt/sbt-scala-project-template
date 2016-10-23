@@ -1,57 +1,97 @@
 import sbt._
 
 /**
-  * Contains dependencies versions
-  */
-object Versions {
-
-  lazy val logbackVersion: String = "1.1.6"
-  lazy val scalaLoggingVersion: String = "3.1.0"
-  lazy val ficusVersion: String = "1.2.3"
-  lazy val scalaTimeVersion: String = "2.10.0"
-
-  lazy val scalazVersion: String = "7.2.1"
-
-  lazy val specs2Version: String = "3.7.2"
-  lazy val specs2ScalazVersion: String = "0.4.0"
-
-}
-
-/**
-  * Contains dependencies
-  */
+ * Maneja las dependencias de la aplicación.
+ */
 object Dependencies {
 
   /**
-    * Contains compilation modules
-    */
-  private[Dependencies] object CompileModules {
+   * Define exclusiones necesarias en las librerías para evitar conflictos.
+   *
+   * Hay dos tipos:
+   * - Exclusions: que son paquetes de exclusiones usado por solo una librería.
+   * - Exclude: que una sola exclusión especifica que puede ser usada por una o varias librerías.
+   *
+   * Orden:
+   * - Primero Exclusions luego Exclude.
+   * - Alfabético entre Exclusions.
+   * - Por composición entre Exclude.
+   */
+  private[Dependencies] implicit class Exclude(module: ModuleID) {
 
-    lazy val logbackCore: ModuleID = "ch.qos.logback" % "logback-core" % Versions.logbackVersion
-    lazy val logbackClassic: ModuleID = "ch.qos.logback" % "logback-classic" % Versions.logbackVersion
-    lazy val scalaLogging: ModuleID = "com.typesafe.scala-logging" %% "scala-logging" % Versions.scalaLoggingVersion
-    lazy val ficus: ModuleID = "com.iheart" %% "ficus" % Versions.ficusVersion
-    lazy val scalaTime: ModuleID = "com.github.nscala-time" %% "nscala-time" % Versions.scalaTimeVersion
+    def scalaLoggingExclude: ModuleID = module.logScalaExclude.exclude("com.typesafe.scala-logging", "scala-logging_2.11")
 
-    lazy val scalaz: ModuleID = "org.scalaz" %% "scalaz-core" % Versions.scalazVersion
+    def logScalaExclude: ModuleID = module.logsExclude.scalaLibraryExclude
 
+    def logsExclude: ModuleID = module.logbackExclude.scalaLoggingOldLibsExclude.log4jExclude
+
+    def logbackExclude: ModuleID = {
+      module.excludeAll(
+        ExclusionRule("ch.qos.logback", "logback-classic"),
+        ExclusionRule("ch.qos.logback", "logback-core")
+      )
+    }
+
+    /**
+     * @see https://stackoverflow.com/questions/29065603/complete-scala-logging-example
+     */
+    def scalaLoggingOldLibsExclude: ModuleID = {
+      module.excludeAll(
+        ExclusionRule("com.typesafe.scala-logging", "scala-logging-api_2.11"),
+        ExclusionRule("com.typesafe.scala-logging", "scala-logging-slf4j_2.11")
+      )
+    }
+
+    /**
+     * @see http://www.slf4j.org/legacy.html
+     */
+    def log4jExclude: ModuleID = {
+      module.excludeAll(
+        ExclusionRule("commons-logging", "commons-logging"),
+        ExclusionRule("log4j"          , "log4j"),
+        ExclusionRule("org.slf4j"      , "jcl-over-slf4j"),
+        ExclusionRule("org.slf4j"      , "jul-to-slf4j"),
+        ExclusionRule("org.slf4j"      , "log4j-over-slf4j"),
+        ExclusionRule("org.slf4j"      , "slf4j-api"),
+        ExclusionRule("org.slf4j"      , "slf4j-jcl"),
+        ExclusionRule("org.slf4j"      , "slf4j-jdk14"),
+        ExclusionRule("org.slf4j"      , "slf4j-log4j12"),
+        ExclusionRule("org.slf4j"      , "slf4j-nop"),
+        ExclusionRule("org.slf4j"      , "slf4j-simple")
+      )
+    }
+
+    def scalaLibraryExclude: ModuleID = module.exclude("org.scala-lang", "scala-library")
   }
 
   /**
-    * Contains testing modules
-    */
-  private[Dependencies] object TestModules {
+   * Define las librerías necesarias para compilar.
+   *
+   * Orden por importancia y prioridad, primero cosas como scala, akka y finalmente utilidades y log.
+   */
+  private[Dependencies] object CompileDep {
 
-    lazy val specs2: ModuleID = "org.specs2" %% "specs2-core" % Versions.specs2Version % "test"
-    lazy val specs2Scalaz: ModuleID = "org.typelevel" %% "scalaz-specs2" % Versions.specs2ScalazVersion % "test"
+    import Versions._
+
+    val `scala-compiler`: ModuleID = "org.scala-lang" % "scala-compiler" % scala logScalaExclude
+    val `scala-reflect`: ModuleID  = "org.scala-lang" % "scala-reflect"  % scala logScalaExclude
+    val `scala-library`: ModuleID  = "org.scala-lang" % "scala-library"  % scala logsExclude
+  }
+
+  /**
+   * Define las librerías necesarias para pruebas.
+   *
+   * Orden alfabético.
+   */
+  private[Dependencies] object TestDep {
+
+    import Versions._
+
 
   }
 
-  import Dependencies.{CompileModules => C, TestModules => T}
+  import Dependencies.CompileDep._
+  import Dependencies.TestDep._
 
-  private[Dependencies] val utils: Seq[ModuleID] = Seq(C.logbackCore, C.logbackClassic, C.scalaLogging, C.ficus, C.scalaTime)
-  private[Dependencies] val functional: Seq[ModuleID] = Seq(C.scalaz)
-  private[Dependencies] val test: Seq[ModuleID] = Seq(T.specs2, T.specs2Scalaz)
-
-  val all: Seq[ModuleID] = utils ++ functional ++ test
+  val `scala-libs`: Seq[ModuleID] = Seq(`scala-compiler`, `scala-reflect`, `scala-library`)
 }

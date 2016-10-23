@@ -1,69 +1,90 @@
+import com.timushev.sbt.updates.UpdatesKeys
+import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import org.scalastyle.sbt.ScalastylePlugin
+import sbt.Keys._
 import sbt._
 
-// -----------------------------------------------------
-// Build information for project $name$
-// -----------------------------------------------------
+// ---------------------
+// Settings
+// ---------------------
+
 organization := "$project_organization$"
+
 name := "$name;format="norm"$"
+
 description := "$project_description$"
 
-// -----------------------------------------------------
-// Scala compiler configurations
-// -----------------------------------------------------
-scalaVersion := "$scala_version$"
-scalacOptions ++= Seq(
-  "-target:jvm-$jvm_version$", // Force compile with specified java version.
-  "-deprecation", // Emit warning and location for usages of deprecated APIs.
-  "-encoding", "UTF-8", // Specify character encoding used by source files.
-  "-feature", // Emit warning and location for usages of features that should be imported explicitly.
-  "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
-  "-language:higherKinds", // Allow higher-kinded types
-  "-language:implicitConversions", // Allow definition of implicit functions called views
-  "-unchecked", // Enable detailed unchecked (erasure) warnings
-  "-Xfatal-warnings", // Fail the compilation if there are any warnings.
-  "-Xlint", // Enable recommended additional warnings.
-  "-Yno-adapted-args", // Warn if an argument list is modified to match the receiver.
-  "-Ywarn-dead-code", // Warn if dead code.
-  "-Ywarn-numeric-widen",
-  "-Ywarn-value-discard", // Warn when non-Unit expression results are unused.
-  "-Xfuture", // Turn on future language features.
-  "-Xcheckinit" // Checks objects initialization
+scalaVersion := Versions.scala
+
+autoScalaLibrary := false
+
+autoCompilerPlugins := true
+
+/**
+ * @see https://docs.oracle.com/javase/8/docs/technotes/tools/windows/java.html
+ * @see https://docs.oracle.com/javase/8/docs/api/java/awt/Toolkit.html
+ * @see https://docs.oracle.com/javase/8/docs/api/java/net/doc-files/net-properties.html
+ * @see https://spark.apache.org/docs/latest/tuning.html
+ */
+javaOptions in ThisBuild ++= Seq(
+  "-Xms512m", "-Xmx1G", "-XX:+UseCompressedOops", "-XX:+PrintGCDetails", "-XX:+PrintGCTimeStamps", "-Djava.awt.headless=true",
+  "-Djava.net.preferIPv4Stack=true"
 )
 
-// -----------------------------------------------------
-// Resolvers and dependencies
-// -----------------------------------------------------
-resolvers += Resolver.jcenterRepo
-libraryDependencies ++= Dependencies.all
+/**
+ * @see https://docs.oracle.com/javase/8/docs/technotes/tools/windows/javac.html
+ */
+javacOptions in ThisBuild ++= {
+  import Versions._
+  Seq("-source", jdk, "-target", jdk, "-Xlint:all")
+}
 
-// -----------------------------------------------------
-// Projects definitions
-// -----------------------------------------------------
-lazy val root: Project = Project(
-  "$name;format="norm"$",
-  file(".")
-).enablePlugins(
-  JavaAppPackaging
-).disablePlugins(
-  SbtScalariform
+/**
+ * @see https://github.com/scala/scala/tree/2.11.x/src/compiler/scala/tools/nsc/settings
+ */
+scalacOptions in ThisBuild ++= Seq(
+  s"-target:jvm-${Versions.jdk}", "-encoding", "UTF-8", "-feature", "-unchecked", "-deprecation", "-Xlint", "-Ywarn-dead-code", "-Ywarn-value-discard",
+  "-Ywarn-numeric-widen"
 )
 
-// -----------------------------------------------------
-// Custom tasks
-// -----------------------------------------------------
-lazy val customCompile: TaskKey[Unit] = taskKey[Unit]("customCompile")
-customCompile := Def.sequential (
-  com.timushev.sbt.updates.UpdatesKeys.dependencyUpdates.in(Compile).toTask,
-  com.typesafe.sbt.SbtScalariform.ScalariformKeys.format.in(Compile).toTask,
-  org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Compile).toTask("")
-).value
+libraryDependencies ++= {
+  import Dependencies._
+  `scala-libs`
+}
 
-lazy val customTest: TaskKey[Unit] = taskKey[Unit]("customTest")
-customTest := Def.sequential (
-  com.timushev.sbt.updates.UpdatesKeys.dependencyUpdates.in(Test).toTask,
-  com.typesafe.sbt.SbtScalariform.ScalariformKeys.format.in(Test).toTask,
-  org.scalastyle.sbt.ScalastylePlugin.scalastyle.in(Test).toTask("")
-).value
+compileOrder in Compile := CompileOrder.JavaThenScala
+
+// -----------------------
+// Custom settings
+// -----------------------
+
+val customCompile: TaskKey[Unit] = taskKey[Unit]("custom-compile")
+customCompile := customCompileInit.value
+
+val customTest: TaskKey[Unit] = taskKey[Unit]("custom-test")
+customTest := customTestInit.value
 
 (compile in Compile) <<= (compile in Compile).dependsOn(customCompile)
 (test in Test) <<= (test in Test).dependsOn(customTest)
+
+/**
+ * Tareas secuenciales ejecutadas al ejecutar compile.
+ */
+def customCompileInit: sbt.Def.Initialize[Task[Unit]] = {
+  Def.sequential(
+    UpdatesKeys.dependencyUpdates.in(Compile).toTask,
+    ScalariformKeys.format.in(Compile).toTask,
+    ScalastylePlugin.scalastyle.in(Compile).toTask("")
+  )
+}
+
+/**
+ * Tareas secuenciales ejecutadas al ejecutar test.
+ */
+def customTestInit: sbt.Def.Initialize[Task[Unit]] = {
+  Def.sequential(
+    UpdatesKeys.dependencyUpdates.in(Test).toTask,
+    ScalariformKeys.format.in(Test).toTask,
+    ScalastylePlugin.scalastyle.in(Test).toTask("")
+  )
+}
