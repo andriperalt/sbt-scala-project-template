@@ -48,7 +48,7 @@ scalacOptions in ThisBuild ++= Seq(
 
 libraryDependencies ++= {
   import Dependencies._
-  `scala-libs` ++ `logging-libs`
+  `scala-libs` ++ `logging-libs` ++ `test-libs`
 }
 
 compileOrder in Compile := CompileOrder.JavaThenScala

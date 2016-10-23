@@ -96,7 +96,7 @@ object Dependencies {
 
     import Versions._
 
-
+    val `scalatest-lib`: ModuleID = "org.scalatest" %% "scalatest" % scalatest % Test logScalaExclude
   }
 
   import Dependencies.CompileDep._
@@ -106,4 +106,5 @@ object Dependencies {
   val `logging-libs`: Seq[ModuleID] = Seq(
     `scala-logging-lib`, `slf4j-api`, `jcl-over-slf4j`, `log4j-over-slf4j`, `jul-to-slf4j`, `logback-classic`, `logback-core`, `groovy-all-lib`
   )
+  val `test-libs`: Seq[ModuleID]    = Seq(`scalatest-lib`)
 }

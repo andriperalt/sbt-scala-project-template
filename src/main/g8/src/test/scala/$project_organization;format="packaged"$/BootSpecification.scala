@@ -1,12 +1,12 @@
 package $project_organization$
 
-import org.specs2.mutable.Specification
+import org.scalatest.{ Matchers, WordSpec }
 
-class BootSpecification extends Specification {
+class BootSpecification extends WordSpec with Matchers {
 
   "Boot object" should {
     "have implemented a helloWorld method" in {
-      Boot.helloWorld should_== "Hello world"
+      Boot.helloWorld shouldEqual "Hello world"
     }
   }
 
