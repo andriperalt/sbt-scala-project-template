@@ -2,12 +2,12 @@ $description
 
 ## Prerrequisitos
 
-- Java $jvm_version
+- Java $jvm_version$
 
 ## Plugins y librerías
 
-- [Scala](http://www.scala-lang.org/) $scala_version
-- [SBT](http://www.scala-sbt.org/) $sbt_version
+- [Scala](http://www.scala-lang.org/) $scala_version$
+- [SBT](http://www.scala-sbt.org/) $sbt_version$
 
 |   Plugin          |   Versión         |   Archivo de configuración   |
 |   -------------   |   -------------   |   --------------  |

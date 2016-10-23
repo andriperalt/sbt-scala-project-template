@@ -2,7 +2,6 @@ import com.timushev.sbt.updates.UpdatesKeys
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import org.scalastyle.sbt.ScalastylePlugin
 import sbt.Keys._
-import sbt._
 
 // ---------------------
 // Settings
