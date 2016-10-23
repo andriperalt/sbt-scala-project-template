@@ -9,7 +9,7 @@
 
 import sbtrelease.{ Version, _ }
 
-credentials += Credentials(Path.userHome / ".ribbonie" / ".credentials")
+//credentials += Credentials(Path.userHome / ".ribbonie" / ".credentials")
 
 pomIncludeRepository := { _ => false }
 

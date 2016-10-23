@@ -73,9 +73,18 @@ object Dependencies {
 
     import Versions._
 
-    val `scala-compiler`: ModuleID = "org.scala-lang" % "scala-compiler" % scala logScalaExclude
-    val `scala-reflect`: ModuleID  = "org.scala-lang" % "scala-reflect"  % scala logScalaExclude
-    val `scala-library`: ModuleID  = "org.scala-lang" % "scala-library"  % scala logsExclude
+    val `scala-compiler`: ModuleID    = "org.scala-lang"              % "scala-compiler"   % scala logScalaExclude
+    val `scala-reflect`: ModuleID     = "org.scala-lang"              % "scala-reflect"    % scala logScalaExclude
+    val `scala-library`: ModuleID     = "org.scala-lang"              % "scala-library"    % scala logsExclude
+
+    val `scala-logging-lib`: ModuleID = "com.typesafe.scala-logging" %% "scala-logging"    % `scala-logging` logScalaExclude
+    val `slf4j-api`: ModuleID         = "org.slf4j"                   % "slf4j-api"        % slf4j
+    val `jcl-over-slf4j`: ModuleID    = "org.slf4j"                   % "jcl-over-slf4j"   % slf4j
+    val `log4j-over-slf4j`: ModuleID  = "org.slf4j"                   % "log4j-over-slf4j" % slf4j
+    val `jul-to-slf4j`: ModuleID      = "org.slf4j"                   % "jul-to-slf4j"     % slf4j
+    val `logback-classic`: ModuleID   = "ch.qos.logback"              % "logback-classic"  % logback log4jExclude
+    val `logback-core`: ModuleID      = "ch.qos.logback"              % "logback-core"     % logback log4jExclude
+    val `groovy-all-lib`: ModuleID    = "org.codehaus.groovy"         % "groovy-all"       % `groovy-all` logScalaExclude
   }
 
   /**
@@ -93,5 +102,8 @@ object Dependencies {
   import Dependencies.CompileDep._
   import Dependencies.TestDep._
 
-  val `scala-libs`: Seq[ModuleID] = Seq(`scala-compiler`, `scala-reflect`, `scala-library`)
+  val `scala-libs`: Seq[ModuleID]   = Seq(`scala-compiler`, `scala-reflect`, `scala-library`)
+  val `logging-libs`: Seq[ModuleID] = Seq(
+    `scala-logging-lib`, `slf4j-api`, `jcl-over-slf4j`, `log4j-over-slf4j`, `jul-to-slf4j`, `logback-classic`, `logback-core`, `groovy-all-lib`
+  )
 }

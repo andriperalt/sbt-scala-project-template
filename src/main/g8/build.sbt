@@ -9,7 +9,7 @@ import sbt.Keys._
 
 organization := "$project_organization$"
 
-name := "$name;format="norm"$"
+name := "$name$"
 
 description := "$project_description$"
 
@@ -48,7 +48,7 @@ scalacOptions in ThisBuild ++= Seq(
 
 libraryDependencies ++= {
   import Dependencies._
-  `scala-libs`
+  `scala-libs` ++ `logging-libs`
 }
 
 compileOrder in Compile := CompileOrder.JavaThenScala
